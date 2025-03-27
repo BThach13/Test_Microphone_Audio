@@ -1,17 +1,9 @@
 ﻿using System.Diagnostics;
-using System.Text;
+using System.Net.Mime;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Timer = System.Timers.Timer;
 
 namespace Test_Microphone_Audio;
 
@@ -20,12 +12,15 @@ namespace Test_Microphone_Audio;
 /// </summary>
 public partial class MainWindow : Window
 {
+    private MicrophoneInputHandler _microphoneInputHandler;
     private Rectangle _innerRectangle;
     private Ellipse _circle;
+    private TextBlock _actualFrequency;
     private bool _grow = true;
     public MainWindow()
     {
         InitializeComponent();
+        _microphoneInputHandler = MicrophoneInputHandler.Instance;
 
         var canvas = new Canvas();
         Content = canvas;
@@ -37,6 +32,16 @@ public partial class MainWindow : Window
             Margin = new Thickness(10, 10, 10, 10)
         };
         canvas.Children.Add(title);
+
+        _actualFrequency = new TextBlock
+        {
+            Text = "Actual Frequency: 0Hz",
+            FontSize = 20,
+            Margin = new Thickness(10, 50, 10, 10)
+        };
+        Canvas.SetBottom(_actualFrequency, 10);
+        Canvas.SetLeft(_actualFrequency, 10);
+        canvas.Children.Add(_actualFrequency);
 
         _circle = new Ellipse { Width = 100, Height = 100, Fill = Brushes.Red };
         Canvas.SetTop(_circle, 150);
@@ -66,29 +71,32 @@ public partial class MainWindow : Window
         canvas.Children.Add(_innerRectangle);
 
         UpdateLoop.Instance.Subscribe(SetInnerRectangleSize);
+
+        UpdateLoop.Instance.Subscribe(SetActualFrequency);
     }
 
     private void SetInnerRectangleSize()
     {
-        // increase to max 100 and decrease to min 0 over time
-        var tick = (int)_innerRectangle.Height;
-        var max = 300;
-        var min = 0;
+        // debug output volume
+        Debug.WriteLine($"Volume: {MicrophoneInputHandler.InputVolume}");
 
-        if (tick < max && _grow)
-        {
-            tick++;
-            _innerRectangle.Height = tick;
-        }
-        else if (tick > min && !_grow)
-        {
-            tick--;
-            _innerRectangle.Height = tick;
-        }
-        else
-        {
-            _grow = !_grow;
-        }
+        var newSize = Math.Round(MicrophoneInputHandler.InputVolume * 10000);
+
+        // map the volume the range of the inner rectangle
+        newSize = Math.Max(0, newSize);
+        newSize = Math.Min(300, newSize);
+
+
+        _innerRectangle.Height = newSize;
+    }
+
+    private void SetActualFrequency()
+    {
+        // debug output frequency
+        Debug.WriteLine($"Frequency: {MicrophoneInputHandler.InputFrequency}");
+
+        _actualFrequency.Text = $"Actual Frequency: {MicrophoneInputHandler.InputFrequency}Hz";
+
     }
 
     protected override void OnClosed(EventArgs e)
