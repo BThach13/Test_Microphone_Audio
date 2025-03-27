@@ -9,7 +9,7 @@ namespace Test_Microphone_Audio
 {
     public class FastFourierTransform
     {
-        public static void Compute(Complex[] buffer)
+        public static void Compute(ref Complex[] buffer)
         {
             int n = buffer.Length;
             if (n == 1)

@@ -96,6 +96,9 @@ namespace Test_Microphone_Audio
             var samples = new short[bytesRecorded / 2];
             Buffer.BlockCopy(buffer, 0, samples, 0, bytesRecorded);
 
+            var acf = ComputeACF(samples);
+            var fundamentalFrequency = FindFundamentalFrequency(acf);
+
             var fftLength = 4096;
             var fftBuffer = new Complex[fftLength];
 
@@ -105,7 +108,7 @@ namespace Test_Microphone_Audio
                 fftBuffer[i] = i < samples.Length ? new Complex(samples[i] * window, 0) : Complex.Zero;
             }
 
-            FastFourierTransform.Compute(fftBuffer);
+            FastFourierTransform.Compute(ref fftBuffer);
 
             // Find the peak frequency
             float maxMagnitude = 0;
@@ -122,7 +125,13 @@ namespace Test_Microphone_Audio
 
             float frequency = maxIndex * SampleRate / fftLength;
 
-            // Check for harmonics
+            // Check for fundamental frequency (try to solve octave errors)
+            if (Math.Abs(fundamentalFrequency - frequency) < fundamentalFrequency * 0.1)
+            {
+                frequency = fundamentalFrequency;
+            }
+
+            // Check for harmonics (try to solve octave errors)
             if (maxIndex > 1 && maxIndex < fftLength / 4)
             {
                 float harmonicFrequency = (maxIndex * 2) * SampleRate / fftLength;
@@ -133,6 +142,41 @@ namespace Test_Microphone_Audio
             }
 
             return frequency;
+        }
+
+        private static float[] ComputeACF(short[] samples)
+        {
+            int length = samples.Length;
+            float[] acf = new float[length];
+
+            for (int lag = 0; lag < length; lag++)
+            {
+                float sum = 0;
+                for (int i = 0; i < length - lag; i++)
+                {
+                    sum += samples[i] * samples[i + lag];
+                }
+                acf[lag] = sum;
+            }
+
+            return acf;
+        }
+
+        private static float FindFundamentalFrequency(float[] acf)
+        {
+            var maxIndex = 1;
+            var maxValue = float.MinValue;
+
+            for (var i = 1; i < acf.Length; i++)
+            {
+                if (acf[i] > maxValue)
+                {
+                    maxValue = acf[i];
+                    maxIndex = i;
+                }
+            }
+
+            return SampleRate / maxIndex;
         }
     }
 }
