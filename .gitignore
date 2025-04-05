@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Test_Microphone_Audio/Assets/Audio/Test_Toon_3s_C2-C6.wav
+/Test_Microphone_Audio/AudioInputHandler.cs
