@@ -12,8 +12,9 @@ namespace Test_Microphone_Audio;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private MicrophoneInputHandler _microphoneInputHandler;
-    private FrequencyToNoteMapper _frequencyToNoteMapper;
+    private readonly MicrophoneInputHandler _microphoneInputHandler;
+    // private readonly AudioInputHandler _audioInputHandler;
+    private readonly FrequencyToNoteMapper _frequencyToNoteMapper;
     private Rectangle _innerRectangle;
     private Ellipse _circle;
     private TextBlock _note;
@@ -23,6 +24,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _microphoneInputHandler = MicrophoneInputHandler.Instance;
+        // _audioInputHandler = AudioInputHandler.Instance;
         _frequencyToNoteMapper = FrequencyToNoteMapper.Instance;
 
         var canvas = new Canvas();

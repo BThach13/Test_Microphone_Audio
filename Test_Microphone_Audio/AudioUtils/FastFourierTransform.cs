@@ -1,11 +1,6 @@
-﻿using System;
-using System.Numerics;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
-namespace Test_Microphone_Audio
+namespace Test_Microphone_Audio.AudioUtils
 {
     public class FastFourierTransform
     {
@@ -15,7 +10,7 @@ namespace Test_Microphone_Audio
             if (n == 1)
                 return;
 
-            if ((n & (n - 1)) != 0)
+            if ((n & n - 1) != 0)
                 throw new ArgumentException("n Must be a power of 2");
 
             // Bit-reversal permutation
@@ -56,7 +51,7 @@ namespace Test_Microphone_Audio
             int result = 0;
             for (int i = 0; i < bits; i++)
             {
-                result = (result << 1) | (x & 1);
+                result = result << 1 | x & 1;
                 x >>= 1;
             }
             return result;
